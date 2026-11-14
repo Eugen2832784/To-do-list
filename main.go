@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const dataFile = "tasks.json"
+var dataFile = "tasks.json"
 
 type Task struct {
 	ID   int    `json:"id"`
@@ -41,7 +41,7 @@ func save(tasks []Task) error {
 }
 
 func nextID(tasks []Task) int {
-	max := 0
+	maxID := 0
 	for _, t := range tasks {
 		if t.ID > max {
 			max = t.ID
