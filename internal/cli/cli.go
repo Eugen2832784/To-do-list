@@ -1,7 +1,9 @@
+// Package cli разбирает команды пользователя и выполняет их.
 package cli
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"strconv"
@@ -16,7 +18,8 @@ type App struct {
 	out   io.Writer
 }
 
-
+// New создаёт приложение. Хранилище и вывод передаются снаружи,
+// поэтому в тестах их легко подменить.
 func New(store *storage.Storage, out io.Writer) *App {
 	return &App{store: store, out: out}
 }
@@ -24,11 +27,12 @@ func New(store *storage.Storage, out io.Writer) *App {
 func (a *App) usage() {
 	fmt.Fprintln(a.out, `Использование:
   todo add "текст задачи"
-  todo list
+  todo list [--todo | --done]
   todo done <id>
   todo delete <id>`)
 }
 
+// Run выполняет команду, переданную в args (без имени программы).
 func (a *App) Run(args []string) error {
 	if len(args) < 1 {
 		a.usage()
@@ -50,11 +54,35 @@ func (a *App) Run(args []string) error {
 		fmt.Fprintln(a.out, "Добавлено:", text)
 
 	case "list":
+		fs := flag.NewFlagSet("list", flag.ContinueOnError)
+		fs.SetOutput(io.Discard)
+		onlyTodo := fs.Bool("todo", false, "только невыполненные")
+		onlyDone := fs.Bool("done", false, "только выполненные")
+		if err := fs.Parse(args[1:]); err != nil {
+			return err
+		}
+		if *onlyTodo && *onlyDone {
+			return errors.New("флаги --todo и --done нельзя использовать вместе")
+		}
+
 		if len(tasks) == 0 {
 			fmt.Fprintln(a.out, "Задач нет")
 			return nil
 		}
-		for _, t := range tasks {
+
+		shown := tasks
+		switch {
+		case *onlyTodo:
+			shown = task.Filter(tasks, false)
+		case *onlyDone:
+			shown = task.Filter(tasks, true)
+		}
+		if len(shown) == 0 {
+			fmt.Fprintln(a.out, "Подходящих задач нет")
+			return nil
+		}
+
+		for _, t := range shown {
 			mark := " "
 			if t.Done {
 				mark = "x"

@@ -45,3 +45,41 @@ func TestFindIndex(t *testing.T) {
 		})
 	}
 }
+
+func TestFilter(t *testing.T) {
+	tasks := []Task{
+		{ID: 1, Done: false},
+		{ID: 2, Done: true},
+		{ID: 3, Done: false},
+	}
+
+	tests := []struct {
+		name    string
+		done    bool
+		wantIDs []int
+	}{
+		{"невыполненные", false, []int{1, 3}},
+		{"выполненные", true, []int{2}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Filter(tasks, tt.done)
+			if len(got) != len(tt.wantIDs) {
+				t.Fatalf("Filter() вернул %d задач, ожидалось %d", len(got), len(tt.wantIDs))
+			}
+			for i, id := range tt.wantIDs {
+				if got[i].ID != id {
+					t.Errorf("got[%d].ID = %d, ожидалось %d", i, got[i].ID, id)
+				}
+			}
+		})
+	}
+}
+
+func TestFilterEmptyResult(t *testing.T) {
+	got := Filter([]Task{{ID: 1, Done: false}}, true)
+	if got == nil || len(got) != 0 {
+		t.Errorf("ожидался пустой список (не nil), получили %#v", got)
+	}
+}

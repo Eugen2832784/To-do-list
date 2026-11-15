@@ -101,3 +101,79 @@ func TestRunErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestListFilters(t *testing.T) {
+	app, _, out := newTestApp(t)
+
+	for _, args := range [][]string{
+		{"add", "первая"},
+		{"add", "вторая"},
+		{"done", "1"},
+	} {
+		if err := app.Run(args); err != nil {
+			t.Fatalf("Run(%v) вернул ошибку: %v", args, err)
+		}
+	}
+
+	tests := []struct {
+		name        string
+		args        []string
+		wantContain string
+		wantAbsent  string
+	}{
+		{"без фильтра", []string{"list"}, "вторая", ""},
+		{"только невыполненные", []string{"list", "--todo"}, "вторая", "первая"},
+		{"только выполненные", []string{"list", "--done"}, "первая", "вторая"},
+		{"один дефис тоже работает", []string{"list", "-todo"}, "вторая", "первая"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			out.Reset()
+			if err := app.Run(tt.args); err != nil {
+				t.Fatal(err)
+			}
+			got := out.String()
+			if !strings.Contains(got, tt.wantContain) {
+				t.Errorf("в выводе нет %q:\n%s", tt.wantContain, got)
+			}
+			if tt.wantAbsent != "" && strings.Contains(got, tt.wantAbsent) {
+				t.Errorf("в выводе не должно быть %q:\n%s", tt.wantAbsent, got)
+			}
+		})
+	}
+}
+
+func TestListFilterNoMatches(t *testing.T) {
+	app, _, out := newTestApp(t)
+
+	if err := app.Run([]string{"add", "единственная"}); err != nil {
+		t.Fatal(err)
+	}
+	out.Reset()
+	if err := app.Run([]string{"list", "--done"}); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), "Подходящих задач нет") {
+		t.Errorf("ожидалось сообщение об отсутствии задач, получили %q", out.String())
+	}
+}
+
+func TestListFilterErrors(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{"оба флага сразу", []string{"list", "--todo", "--done"}},
+		{"неизвестный флаг", []string{"list", "--foo"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _, _ := newTestApp(t)
+			if err := app.Run(tt.args); err == nil {
+				t.Errorf("Run(%v) должен вернуть ошибку", tt.args)
+			}
+		})
+	}
+}
