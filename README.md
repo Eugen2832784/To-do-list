@@ -1,5 +1,7 @@
 # To-do list CLI
 
+![CI](https://github.com/Eugen2832784/To-do-list/actions/workflows/ci.yml/badge.svg)
+
 Простой менеджер задач для терминала, написанный на Go. Без внешних зависимостей, задачи хранятся в локальном JSON-файле.
 
 ## Возможности
@@ -82,6 +84,5 @@ go test ./...
 
 - [x] Тесты
 - [x] Разделение на пакеты
-- [ ] GitHub Actions (CI)
+- [x] GitHub Actions (CI)
 - [ ] Фильтры для `list`
-

@@ -1,4 +1,3 @@
-// Package storage сохраняет и загружает задачи из JSON-файла.
 package storage
 
 import (
