@@ -110,7 +110,9 @@ func (a *App) Run(args []string) error {
 			fmt.Fprintln(a.out, "Удалено:", tasks[i].Text)
 			tasks = append(tasks[:i], tasks[i+1:]...)
 		}
-
+	case "clear":
+		tasks = []task.Task{}
+		fmt.Fprintln(a.out, "Все задачи удалены")
 	default:
 		a.usage()
 		return fmt.Errorf("неизвестная команда %q", args[0])
