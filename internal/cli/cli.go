@@ -29,7 +29,8 @@ func (a *App) usage() {
   todo add "текст задачи"
   todo list [--todo | --done]
   todo done <id>
-  todo delete <id>`)
+  todo delete <id>
+  todo clear`)
 }
 
 // Run выполняет команду, переданную в args (без имени программы).

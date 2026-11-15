@@ -1,9 +1,11 @@
+// Package storage сохраняет и загружает задачи из JSON-файла.
 package storage
 
 import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 
 	"todo/internal/task"
 )
@@ -39,5 +41,23 @@ func (s *Storage) Save(tasks []task.Task) error {
 	if err != nil {
 		return err
 	}
+	// Создаём папку для файла, если её ещё нет (например, ~/.todo).
+	if err := os.MkdirAll(filepath.Dir(s.path), 0o755); err != nil {
+		return err
+	}
 	return os.WriteFile(s.path, data, 0o644)
+}
+
+// DefaultPath возвращает путь к файлу с задачами.
+// Если задана переменная окружения TODO_FILE, используется она,
+// иначе ~/.todo/tasks.json.
+func DefaultPath() (string, error) {
+	if p := os.Getenv("TODO_FILE"); p != "" {
+		return p, nil
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, ".todo", "tasks.json"), nil
 }

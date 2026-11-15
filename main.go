@@ -8,13 +8,19 @@ import (
 	"todo/internal/storage"
 )
 
-
-
 func main() {
-	app := cli.New(storage.New("tasks.json"), os.Stdout)
-
-	if err := app.Run(os.Args[1:]); err != nil {
+	if err := run(); err != nil {
 		fmt.Fprintln(os.Stderr, "Ошибка:", err)
 		os.Exit(1)
 	}
+}
+
+func run() error {
+	path, err := storage.DefaultPath()
+	if err != nil {
+		return err
+	}
+
+	app := cli.New(storage.New(path), os.Stdout)
+	return app.Run(os.Args[1:])
 }

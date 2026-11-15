@@ -177,3 +177,38 @@ func TestListFilterErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestRunClear(t *testing.T) {
+	app, store, out := newTestApp(t)
+
+	for _, args := range [][]string{{"add", "первая"}, {"add", "вторая"}} {
+		if err := app.Run(args); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	out.Reset()
+	if err := app.Run([]string{"clear"}); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), "Все задачи удалены") {
+		t.Errorf("нет сообщения об удалении, получили %q", out.String())
+	}
+
+	tasks, err := store.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(tasks) != 0 {
+		t.Fatalf("после clear ожидался пустой список, получили %+v", tasks)
+	}
+
+	// После очистки нумерация начинается заново.
+	if err := app.Run([]string{"add", "новая"}); err != nil {
+		t.Fatal(err)
+	}
+	tasks, _ = store.Load()
+	if len(tasks) != 1 || tasks[0].ID != 1 {
+		t.Errorf("новая задача должна получить id 1, получили %+v", tasks)
+	}
+}
