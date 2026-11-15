@@ -27,3 +27,14 @@ func FindIndex(tasks []Task, id int) int {
 	}
 	return -1
 }
+
+// Filter возвращает только те задачи, у которых Done совпадает с done.
+func Filter(tasks []Task, done bool) []Task {
+	result := []Task{}
+	for _, t := range tasks {
+		if t.Done == done {
+			result = append(result, t)
+		}
+	}
+	return result
+}
